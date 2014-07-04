@@ -10,6 +10,7 @@
 		328E84C31966529C0077F0D7 /* Mod3.h in Headers */ = {isa = PBXBuildFile; fileRef = 328E84C21966529C0077F0D7 /* Mod3.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		328E84C91966529C0077F0D7 /* Mod3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 328E84BD1966529C0077F0D7 /* Mod3.framework */; };
 		328E84D01966529C0077F0D7 /* Mod3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328E84CF1966529C0077F0D7 /* Mod3Tests.swift */; };
+		328E84DA196653080077F0D7 /* ModThree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328E84D9196653080077F0D7 /* ModThree.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +30,7 @@
 		328E84C81966529C0077F0D7 /* Mod3Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Mod3Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		328E84CE1966529C0077F0D7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		328E84CF1966529C0077F0D7 /* Mod3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mod3Tests.swift; sourceTree = "<group>"; };
+		328E84D9196653080077F0D7 /* ModThree.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModThree.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				328E84C21966529C0077F0D7 /* Mod3.h */,
+				328E84D9196653080077F0D7 /* ModThree.swift */,
 				328E84C01966529C0077F0D7 /* Supporting Files */,
 			);
 			path = Mod3;
@@ -210,6 +213,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				328E84DA196653080077F0D7 /* ModThree.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -320,6 +324,7 @@
 		328E84D41966529C0077F0D7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -329,12 +334,14 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
 		328E84D51966529C0077F0D7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;

@@ -7,29 +7,62 @@
 //
 
 import XCTest
+import Mod3
 
-class Mod3Tests: XCTestCase {
+class DeterministicFiniteStateMachineTests: XCTestCase {
+    let dfa = DeterministicFiniteStateMachine()
     
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    func test0() {
+        let state = dfa.delta(State.q0, string:"000000")
+        XCTAssertEqual(state.toString(), State.q0.toString())
+    }
+    func test1() {
+        let state = dfa.delta(State.q0, string:"0000001")
+        XCTAssertNotEqual(state.toString(), State.q0.toString())
+    }
+    func test2() {
+        let state = dfa.delta(State.q0, string:"0000010")
+        XCTAssertNotEqual(state.toString(), State.q0.toString())
+    }
+    func test3() {
+        let state = dfa.delta(State.q0, string:"000011")
+        XCTAssertEqual(state.toString(), State.q0.toString())
+    }
+    func test4() {
+        let state = dfa.delta(State.q0, string:"00000100")
+        XCTAssertNotEqual(state.toString(), State.q0.toString())
+    }
+    func test5() {
+        let state = dfa.delta(State.q0, string:"000000101")
+        XCTAssertNotEqual(state.toString(), State.q0.toString())
+    }
+    func test6() {
+        let state = dfa.delta(State.q0, string:"0000000110")
+        XCTAssertEqual(state.toString(), State.q0.toString())
+    }
+    func test7() {
+        let state = dfa.delta(State.q0, string:"0000000111")
+        XCTAssertNotEqual(state.toString(), State.q0.toString())
+    }
+    func test8() {
+        let state = dfa.delta(State.q0, string:"000000001000")
+        XCTAssertNotEqual(state.toString(), State.q0.toString())
+    }
+    func test9() {
+        let state = dfa.delta(State.q0, string:"000000001001")
+        XCTAssertEqual(state.toString(), State.q0.toString())
     }
     
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
+    func test97() {
+        let state = dfa.delta(State.q0, string:"00001100001")
+        XCTAssertNotEqual(state.toString(), State.q0.toString())
     }
-    
-    func testExample() {
-        // This is an example of a functional test case.
-        XCTAssert(true, "Pass")
+    func test98() {
+        let state = dfa.delta(State.q0, string:"0000001100010")
+        XCTAssertNotEqual(state.toString(), State.q0.toString())
     }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock() {
-            // Put the code you want to measure the time of here.
-        }
+    func test99() {
+        let state = dfa.delta(State.q0, string:"000000001100011")
+        XCTAssertEqual(state.toString(), State.q0.toString())
     }
-    
 }
