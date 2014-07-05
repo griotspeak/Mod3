@@ -66,3 +66,14 @@ class DeterministicFiniteStateMachineTests: XCTestCase {
         XCTAssertEqual(state.toString(), State.q0.toString())
     }
 }
+
+
+class Mod3FilterTests: XCTestCase {
+    func testCases() {
+        let string =
+        "000000000000000\n000000000000001\n000000000000010\n000000000000011\n000000000000100\n000000000000101\n000000000000110\n000000000000111\n000000000001000\n000000000001001\n000000001100001\n000000001100010\n000000001100011"
+        
+        let expected = "000000000000000\n000000000000011\n000000000000110\n000000000001001\n000000001100011"
+        XCTAssertEqual(Mod3Filter().filter(string), expected)
+    }
+}

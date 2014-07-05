@@ -57,7 +57,7 @@ struct Array2D<T> {
 }
 
 struct DeterministicFiniteStateMachine {
-    
+    let acceptanceState:State = State.q0
     var table:Array2D<State> {
     get {
         let stateCount = State.q3.toRaw() + 1
@@ -86,7 +86,7 @@ struct DeterministicFiniteStateMachine {
             return workingState
         }
     }
-    
+ 
     func delta(state:State, char:Character) -> State {
         var charVal:Int
         switch char {
@@ -101,6 +101,29 @@ struct DeterministicFiniteStateMachine {
         
         return outState
     }
+    
+    func accepts(state:State, string:String) -> Bool {
+        return delta(state, string: string) == self.acceptanceState
+    }
 }
 
-let dfa = DeterministicFiniteStateMachine()
+class Mod3Filter {
+    let dfa = DeterministicFiniteStateMachine()
+    func filter(input:String) -> String {
+        let string = input.bridgeToObjectiveC()
+        let splitString:String[] = string.componentsSeparatedByString("\n") as String[]
+        var output = String()
+        let count = countElements(splitString)
+        for (index, value) in enumerate(splitString) {
+            if dfa.accepts(.q0, string: value) {
+                output += value
+                
+                if index+1 != count {
+                    output += "\n"
+                }
+            }
+        }
+        
+        return output
+    }
+}
