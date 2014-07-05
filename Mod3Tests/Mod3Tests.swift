@@ -10,7 +10,7 @@ import XCTest
 import Mod3
 
 class DeterministicFiniteStateMachineTests: XCTestCase {
-    let dfa = DeterministicFiniteStateMachine()
+    let dfa = Mod3DFA()
     
     func test0() {
         let state = dfa.delta(State.q0, string:"000000")

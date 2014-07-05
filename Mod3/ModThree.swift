@@ -56,10 +56,42 @@ struct Array2D<T> {
     }
 }
 
-struct DeterministicFiniteStateMachine {
-    let acceptanceState:State = State.q0
-    var table:Array2D<State> {
-    get {
+class DeterministicFiniteStateMachine {
+    
+    let acceptanceStates:State[] = []
+    let table:Array2D<State>
+    
+    init(acceptanceStates:State[], table:Array2D<State>) {
+        self.acceptanceStates = acceptanceStates
+        self.table = table
+    }
+    
+    /** @todo put in extension 2014-07-05 */
+    func delta(state:State, char:Character) -> State {
+        fatalError("Must overwrite delta (T, Character) -> T")
+    }
+    func accepts(state:State, string:String) -> Bool {
+        return contains(self.acceptanceStates, delta(state, string: string))
+    }
+}
+
+extension DeterministicFiniteStateMachine {
+    func delta(state:State, string:String) -> State {
+        // calls Character delta
+        if countElements(string) == 0 {
+            return .q0
+        } else {
+            var workingState:State = .q0
+            for (index, value) in enumerate(string) {
+                workingState = delta(workingState, char: value)
+            }
+            return workingState
+        }
+    }
+}
+
+class Mod3DFA : DeterministicFiniteStateMachine {
+    init() {
         let stateCount = State.q3.toRaw() + 1
         var array = Array2D(cols:128, rows:stateCount, repeatedValue:State.q3)
         
@@ -71,23 +103,10 @@ struct DeterministicFiniteStateMachine {
         array[State.q2.toRaw(), 1] = .q2
         array[State.q3.toRaw(), 0] = .q3
         array[State.q3.toRaw(), 1] = .q3
-        return array
-    }
+        super.init(acceptanceStates: [.q0], table: array)
     }
     
-    func delta(state:State, string:String) -> State {
-        if countElements(string) == 0 {
-            return .q0
-        } else {
-            var workingState:State = .q0
-            for (index, value) in enumerate(string) {
-                workingState = delta(workingState, char: value)
-            }
-            return workingState
-        }
-    }
- 
-    func delta(state:State, char:Character) -> State {
+    override func delta(state:State, char:Character) -> State {
         var charVal:Int
         switch char {
         case "0":
@@ -101,21 +120,17 @@ struct DeterministicFiniteStateMachine {
         
         return outState
     }
-    
-    func accepts(state:State, string:String) -> Bool {
-        return delta(state, string: string) == self.acceptanceState
-    }
 }
 
-class Mod3Filter {
-    let dfa = DeterministicFiniteStateMachine()
+class Mod3Filter : Mod3DFA {
+
     func filter(input:String) -> String {
         let string = input.bridgeToObjectiveC()
         let splitString:String[] = string.componentsSeparatedByString("\n") as String[]
         var output = String()
         let count = countElements(splitString)
         for (index, value) in enumerate(splitString) {
-            if dfa.accepts(.q0, string: value) {
+            if accepts(.q0, string: value) {
                 output += value
                 
                 if index+1 != count {
