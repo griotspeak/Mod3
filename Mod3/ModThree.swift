@@ -27,13 +27,53 @@ enum State : Int {
     }
 }
 
+struct Array2D<T> {
+    var cols:Int, rows:Int
+    var matrix:T[]
+    
+    
+    init(cols:Int, rows:Int, repeatedValue:T) {
+        self.cols = cols
+        self.rows = rows
+        matrix = Array(count:cols*rows, repeatedValue:repeatedValue)
+    }
+    
+    subscript(col:Int, row:Int) -> T {
+        get {
+            return matrix[cols * row + col]
+        }
+        set {
+            matrix[cols*row+col] = newValue
+        }
+    }
+    
+    func colCount() -> Int {
+        return self.cols
+    }
+    
+    func rowCount() -> Int {
+        return self.rows
+    }
+}
+
 struct DeterministicFiniteStateMachine {
-    let table = [
-        [State.q0, State.q1],
-        [State.q2, State.q0],
-        [State.q1, State.q2],
-        [State.q3, State.q3],
-    ]
+    
+    var table:Array2D<State> {
+    get {
+        let stateCount = State.q3.toRaw() + 1
+        var array = Array2D(cols:128, rows:stateCount, repeatedValue:State.q3)
+        
+        array[State.q0.toRaw(), 0] = .q0
+        array[State.q0.toRaw(), 1] = .q1
+        array[State.q1.toRaw(), 0] = .q2
+        array[State.q1.toRaw(), 1] = .q0
+        array[State.q2.toRaw(), 0] = .q1
+        array[State.q2.toRaw(), 1] = .q2
+        array[State.q3.toRaw(), 0] = .q3
+        array[State.q3.toRaw(), 1] = .q3
+        return array
+    }
+    }
     
     func delta(state:State, string:String) -> State {
         if countElements(string) == 0 {
@@ -57,8 +97,9 @@ struct DeterministicFiniteStateMachine {
         default:
             return State.q3
         }
+        let outState = table[state.toRaw(), charVal]
         
-        return table[state.toRaw()][charVal]
+        return outState
     }
 }
 
