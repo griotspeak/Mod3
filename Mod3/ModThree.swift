@@ -8,7 +8,15 @@
 
 import Foundation
 
-enum State : Int {
+protocol DeterministicFiniteAutomataState : Equatable {
+/** @todo Make these variables when supported 2014-07-06 */
+    class func startState() -> Self
+    class func acceptanceStates() -> Self[]
+    class func stateCount() -> Int
+    class func tableRepeatedValueState() -> Self
+}
+
+enum Mod3State : Int, DeterministicFiniteAutomataState {
     case q0 = 0
     case q1
     case q2
@@ -25,7 +33,75 @@ enum State : Int {
             return "q3"
         }
     }
+
+    static func startState() -> Mod3State {
+        return .q0
+    }
+    static func acceptanceStates() -> Mod3State[] {
+        return[.q0]
+    }
+
+    static func stateCount() -> Int {
+        return 4
+    }
+
+    static func tableRepeatedValueState() -> Mod3State {
+        return .q3
+    }
 }
+
+protocol TransitionFunction {
+    typealias State:DeterministicFiniteAutomataState
+    func apply(state:State, char:Character) -> State
+    func apply(state:State, string:String) -> State
+}
+
+struct Mod3TransitionFunction : TransitionFunction {
+    
+    let table:Array2D<Mod3State>
+    
+    init() {
+        var array = Array2D(cols:128, rows:Mod3State.stateCount(), repeatedValue:Mod3State.tableRepeatedValueState())
+        
+        array[Mod3State.q0.toRaw(), 0] = .q0
+        array[Mod3State.q0.toRaw(), 1] = .q1
+        array[Mod3State.q1.toRaw(), 0] = .q2
+        array[Mod3State.q1.toRaw(), 1] = .q0
+        array[Mod3State.q2.toRaw(), 0] = .q1
+        array[Mod3State.q2.toRaw(), 1] = .q2
+        array[Mod3State.q3.toRaw(), 0] = .q3
+        array[Mod3State.q3.toRaw(), 1] = .q3
+        self.table = array
+    }
+    
+    func apply(state:Mod3State, char:Character) -> Mod3State {
+        var charVal:Int
+        switch char {
+        case "0":
+            charVal = 0
+        case "1":
+            charVal = 1
+        default:
+            return Mod3State.q3
+        }
+        let outState = table[state.toRaw(), charVal]
+        
+        return outState
+    }
+    func apply(state:Mod3State, string:String) -> Mod3State {
+        // calls Character delta
+        if countElements(string) == 0 {
+            return state
+        } else {
+            var workingState:Mod3State = Mod3State.startState()
+            for (index, value) in enumerate(string) {
+                workingState = apply(workingState, char: value)
+            }
+            return workingState
+        }
+    }
+}
+
 
 struct Array2D<T> {
     var cols:Int, rows:Int
@@ -56,81 +132,51 @@ struct Array2D<T> {
     }
 }
 
-class DeterministicFiniteStateMachine {
+class ObjectWrapper<T> {
+    /** @todo <#todo#> 2014-07-07 */
     
-    let acceptanceStates:State[] = []
-    let table:Array2D<State>
+    let backingVar: T[]
     
-    init(acceptanceStates:State[], table:Array2D<State>) {
-        self.acceptanceStates = acceptanceStates
-        self.table = table
+    var value: T {
+    get {
+        return backingVar[0]
     }
     
-    /** @todo put in extension 2014-07-05 */
-    func delta(state:State, char:Character) -> State {
-        fatalError("Must overwrite delta (T, Character) -> T")
+    set(newValue) {
+        backingVar[0] = newValue
     }
-    func accepts(state:State, string:String) -> Bool {
-        return contains(self.acceptanceStates, delta(state, string: string))
+    }
+    
+    init(_ value: T) {
+        self.backingVar = [value]
     }
 }
 
-extension DeterministicFiniteStateMachine {
-    func delta(state:State, string:String) -> State {
-        // calls Character delta
-        if countElements(string) == 0 {
-            return .q0
-        } else {
-            var workingState:State = .q0
-            for (index, value) in enumerate(string) {
-                workingState = delta(workingState, char: value)
-            }
-            return workingState
-        }
-    }
-}
-
-class Mod3DFA : DeterministicFiniteStateMachine {
-    init() {
-        let stateCount = State.q3.toRaw() + 1
-        var array = Array2D(cols:128, rows:stateCount, repeatedValue:State.q3)
-        
-        array[State.q0.toRaw(), 0] = .q0
-        array[State.q0.toRaw(), 1] = .q1
-        array[State.q1.toRaw(), 0] = .q2
-        array[State.q1.toRaw(), 1] = .q0
-        array[State.q2.toRaw(), 0] = .q1
-        array[State.q2.toRaw(), 1] = .q2
-        array[State.q3.toRaw(), 0] = .q3
-        array[State.q3.toRaw(), 1] = .q3
-        super.init(acceptanceStates: [.q0], table: array)
-    }
+class DeterministicFiniteAutomata< T : TransitionFunction> {
     
-    override func delta(state:State, char:Character) -> State {
-        var charVal:Int
-        switch char {
-        case "0":
-            charVal = 0
-        case "1":
-            charVal = 1
-        default:
-            return State.q3
-        }
-        let outState = table[state.toRaw(), charVal]
-        
-        return outState
+    let transitionFunction:ObjectWrapper<T>
+    let acceptanceStates:T.State[] = []
+    
+    init(transitionFunction:T) {
+        self.acceptanceStates = T.State.acceptanceStates()
+        self.transitionFunction = ObjectWrapper(transitionFunction)
+    }
+
+    func accepts(state:T.State, string:String) -> Bool {
+        return contains(self.acceptanceStates, self.transitionFunction.value.apply(state, string: string))
     }
 }
 
-class Mod3Filter : Mod3DFA {
+class Mod3Filter {
 
+    let dfa:DeterministicFiniteAutomata<Mod3TransitionFunction> = DeterministicFiniteAutomata<Mod3TransitionFunction>(transitionFunction: Mod3TransitionFunction())
     func filter(input:String) -> String {
         let string = input.bridgeToObjectiveC()
         let splitString:String[] = string.componentsSeparatedByString("\n") as String[]
         var output = String()
         let count = countElements(splitString)
         for (index, value) in enumerate(splitString) {
-            if accepts(.q0, string: value) {
+            if dfa.accepts(Mod3State.startState(), string: value) {
                 output += value
                 
                 if index+1 != count {
