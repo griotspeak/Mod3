@@ -11,9 +11,59 @@ import Foundation
 protocol DeterministicFiniteAutomataState : Equatable {
 /** @todo Make these variables when supported 2014-07-06 */
     class func startState() -> Self
-    class func acceptanceStates() -> Self[]
+    class func acceptanceStates() -> [Self]
     class func stateCount() -> Int
     class func tableRepeatedValueState() -> Self
+}
+
+protocol TransitionFunction {
+    typealias State:DeterministicFiniteAutomataState
+    func apply(state:State, char:Character) -> State
+    func apply(state:State, string:String) -> State
+}
+
+class DeterministicFiniteAutomata< T : TransitionFunction> {
+    
+    let transitionFunction:T
+    let acceptanceStates:[T.State] = []
+    
+    init(transitionFunction:T) {
+        self.acceptanceStates = T.State.acceptanceStates()
+        self.transitionFunction = transitionFunction
+    }
+    
+    func accepts(state:T.State, string:String) -> Bool {
+        return contains(self.acceptanceStates, self.transitionFunction.apply(state, string: string))
+    }
+}
+
+struct Array2D<T> {
+    var cols:Int, rows:Int
+    var matrix:[T]
+    
+    
+    init(cols:Int, rows:Int, repeatedValue:T) {
+        self.cols = cols
+        self.rows = rows
+        matrix = Array(count:cols*rows, repeatedValue:repeatedValue)
+    }
+    
+    subscript(col:Int, row:Int) -> T {
+        get {
+            return matrix[cols * row + col]
+        }
+        set {
+            matrix[cols*row+col] = newValue
+        }
+    }
+    
+    func colCount() -> Int {
+        return self.cols
+    }
+    
+    func rowCount() -> Int {
+        return self.rows
+    }
 }
 
 enum Mod3State : Int, DeterministicFiniteAutomataState {
@@ -33,27 +83,21 @@ enum Mod3State : Int, DeterministicFiniteAutomataState {
             return "q3"
         }
     }
-
+    
     static func startState() -> Mod3State {
         return .q0
     }
-    static func acceptanceStates() -> Mod3State[] {
+    static func acceptanceStates() -> [Mod3State] {
         return[.q0]
     }
-
+    
     static func stateCount() -> Int {
         return 4
     }
-
+    
     static func tableRepeatedValueState() -> Mod3State {
         return .q3
     }
-}
-
-protocol TransitionFunction {
-    typealias State:DeterministicFiniteAutomataState
-    func apply(state:State, char:Character) -> State
-    func apply(state:State, string:String) -> State
 }
 
 struct Mod3TransitionFunction : TransitionFunction {
@@ -102,77 +146,12 @@ struct Mod3TransitionFunction : TransitionFunction {
     }
 }
 
-
-struct Array2D<T> {
-    var cols:Int, rows:Int
-    var matrix:T[]
-    
-    
-    init(cols:Int, rows:Int, repeatedValue:T) {
-        self.cols = cols
-        self.rows = rows
-        matrix = Array(count:cols*rows, repeatedValue:repeatedValue)
-    }
-    
-    subscript(col:Int, row:Int) -> T {
-        get {
-            return matrix[cols * row + col]
-        }
-        set {
-            matrix[cols*row+col] = newValue
-        }
-    }
-    
-    func colCount() -> Int {
-        return self.cols
-    }
-    
-    func rowCount() -> Int {
-        return self.rows
-    }
-}
-
-class ObjectWrapper<T> {
-    /** @todo <#todo#> 2014-07-07 */
-    
-    let backingVar: T[]
-    
-    var value: T {
-    get {
-        return backingVar[0]
-    }
-    
-    set(newValue) {
-        backingVar[0] = newValue
-    }
-    }
-    
-    init(_ value: T) {
-        self.backingVar = [value]
-    }
-}
-
-class DeterministicFiniteAutomata< T : TransitionFunction> {
-    
-    let transitionFunction:ObjectWrapper<T>
-    let acceptanceStates:T.State[] = []
-    
-    init(transitionFunction:T) {
-        self.acceptanceStates = T.State.acceptanceStates()
-        self.transitionFunction = ObjectWrapper(transitionFunction)
-    }
-
-    func accepts(state:T.State, string:String) -> Bool {
-        return contains(self.acceptanceStates, self.transitionFunction.value.apply(state, string: string))
-    }
-}
-
 class Mod3Filter {
 
     let dfa:DeterministicFiniteAutomata<Mod3TransitionFunction> = DeterministicFiniteAutomata<Mod3TransitionFunction>(transitionFunction: Mod3TransitionFunction())
     func filter(input:String) -> String {
         let string = input.bridgeToObjectiveC()
-        let splitString:String[] = string.componentsSeparatedByString("\n") as String[]
+        let splitString:[String] = string.componentsSeparatedByString("\n") as [String]
         var output = String()
         let count = countElements(splitString)
         for (index, value) in enumerate(splitString) {
