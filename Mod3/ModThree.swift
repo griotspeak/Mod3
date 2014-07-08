@@ -37,35 +37,6 @@ class DeterministicFiniteAutomata< T : TransitionFunction> {
     }
 }
 
-struct Array2D<T> {
-    var cols:Int, rows:Int
-    var matrix:[T]
-    
-    
-    init(cols:Int, rows:Int, repeatedValue:T) {
-        self.cols = cols
-        self.rows = rows
-        matrix = Array(count:cols*rows, repeatedValue:repeatedValue)
-    }
-    
-    subscript(col:Int, row:Int) -> T {
-        get {
-            return matrix[cols * row + col]
-        }
-        set {
-            matrix[cols*row+col] = newValue
-        }
-    }
-    
-    func colCount() -> Int {
-        return self.cols
-    }
-    
-    func rowCount() -> Int {
-        return self.rows
-    }
-}
-
 enum Mod3State : Int, DeterministicFiniteAutomataState {
     case q0 = 0
     case q1
@@ -100,21 +71,25 @@ enum Mod3State : Int, DeterministicFiniteAutomataState {
     }
 }
 
-struct Mod3TransitionFunction : TransitionFunction {
+
+class Mod3TransitionFunction : TransitionFunction {
     
-    let table:Array2D<Mod3State>
+    let table:[[Mod3State]]
+    class func createLargeStateTable<State:DeterministicFiniteAutomataState>(alphabetOrdinality:Int, repeatedValue:State) -> [[State]] {
+        return Array<[State]>(count: 128, repeatedValue: Array<State>(count: State.stateCount(), repeatedValue:repeatedValue))
+    }
     
     init() {
-        var array = Array2D(cols:128, rows:Mod3State.stateCount(), repeatedValue:Mod3State.tableRepeatedValueState())
-        
-        array[Mod3State.q0.toRaw(), 0] = .q0
-        array[Mod3State.q0.toRaw(), 1] = .q1
-        array[Mod3State.q1.toRaw(), 0] = .q2
-        array[Mod3State.q1.toRaw(), 1] = .q0
-        array[Mod3State.q2.toRaw(), 0] = .q1
-        array[Mod3State.q2.toRaw(), 1] = .q2
-        array[Mod3State.q3.toRaw(), 0] = .q3
-        array[Mod3State.q3.toRaw(), 1] = .q3
+        self.table = []
+        var array = Mod3TransitionFunction.createLargeStateTable(128, repeatedValue: Mod3State.tableRepeatedValueState())
+        array[Mod3State.q0.toRaw()][0] = .q0
+        array[Mod3State.q0.toRaw()][1] = .q1
+        array[Mod3State.q1.toRaw()][0] = .q2
+        array[Mod3State.q1.toRaw()][1] = .q0
+        array[Mod3State.q2.toRaw()][0] = .q1
+        array[Mod3State.q2.toRaw()][1] = .q2
+        array[Mod3State.q3.toRaw()][0] = .q3
+        array[Mod3State.q3.toRaw()][1] = .q3
         self.table = array
     }
     
@@ -128,7 +103,7 @@ struct Mod3TransitionFunction : TransitionFunction {
         default:
             return Mod3State.q3
         }
-        let outState = table[state.toRaw(), charVal]
+        let outState = table[state.toRaw()][charVal]
         
         return outState
     }
@@ -147,7 +122,6 @@ struct Mod3TransitionFunction : TransitionFunction {
 }
 
 class Mod3Filter {
-
     let dfa:DeterministicFiniteAutomata<Mod3TransitionFunction> = DeterministicFiniteAutomata<Mod3TransitionFunction>(transitionFunction: Mod3TransitionFunction())
     func filter(input:String) -> String {
         let string = input.bridgeToObjectiveC()
